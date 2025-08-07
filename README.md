@@ -18,16 +18,3 @@ O sistema consiste em um gerenciador de atividades acadêmicas que permite:
 ## Tecnologias Utilizadas
 
 Este projeto foi desenvolvido utilizando Flutter.
-
-## Getting Started
-
-Para executar este projeto, certifique-se de ter o Flutter instalado em sua máquina.
-
-### Recursos úteis para Flutter:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-Para ajuda com desenvolvimento Flutter, consulte a
-[documentação online](https://docs.flutter.dev/), que oferece tutoriais,
-exemplos, guias de desenvolvimento mobile e referência completa da API.
