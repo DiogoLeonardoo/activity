@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../models/materia.dart';
-import '../../widgets/cards/materia_card.dart';
-import '../../widgets/dialogs/adicionar_materia_dialog.dart';
+import '../../services/firestore_service.dart';
+import '../../services/auth_service.dart';
+import '../materia/materia_list_page.dart';
 import '../materia/materia_detail_page.dart';
+import 'user_profile_widget.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -10,7 +12,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Materia> materias = [];
+  final FirestoreService _firestoreService = FirestoreService();
+  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +21,63 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text('Gerenciador de Atividades'),
         backgroundColor: Colors.blue[600],
+        actions: [
+          IconButton(
+            icon: Icon(Icons.school),
+            tooltip: 'Matérias',
+            onPressed: () {
+              Navigator.pushNamed(context, '/materias');
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.bug_report),
+            tooltip: 'Firebase Debug',
+            onPressed: () {
+              Navigator.pushNamed(context, '/debug');
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.wifi_tethering),
+            tooltip: 'Testar Firebase',
+            onPressed: () {
+              Navigator.pushNamed(context, '/firebase_test');
+            },
+          ),
+        ],
       ),
-      body: materias.isEmpty
-          ? _buildEmptyState()
-          : _buildMateriasList(),
+      body: Column(
+        children: [
+          // Widget do perfil do usuário
+          UserProfileWidget(),
+          // Lista de matérias
+          Expanded(
+            child: StreamBuilder<List<Materia>>(
+              stream: _firestoreService.getMaterias(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Erro ao carregar matérias: ${snapshot.error}'),
+                  );
+                }
+                
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                
+                List<Materia> materias = snapshot.data ?? [];
+                
+                if (materias.isEmpty) {
+                  return _buildEmptyState();
+                }
+                
+                return _buildMateriasList(materias);
+              },
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _adicionarMateria,
         child: Icon(Icons.add),
@@ -46,14 +102,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildMateriasList() {
+  Widget _buildMateriasList(List<Materia> materias) {
     return ListView.builder(
       itemCount: materias.length,
       itemBuilder: (context, index) {
         final materia = materias[index];
-        return MateriaCard(
-          materia: materia,
-          onTap: () => _navegarParaMateria(materia),
+        return Card(
+          margin: EdgeInsets.all(8),
+          child: ListTile(
+            title: Text(materia.nome),
+            subtitle: Text(materia.descricao),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () => _navegarParaMateria(materia),
+          ),
         );
       },
     );
@@ -69,15 +130,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _adicionarMateria() {
-    showDialog(
-      context: context,
-      builder: (context) => AdicionarMateriaDialog(),
-    ).then((materia) {
-      if (materia != null) {
-        setState(() {
-          materias.add(materia);
-        });
-      }
-    });
+    Navigator.push(
+      context, 
+      MaterialPageRoute(
+        builder: (context) => MateriaListPage(),
+      )
+    );
   }
 }
